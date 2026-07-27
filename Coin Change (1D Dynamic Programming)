@@ -1,0 +1,26 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int coinChange(std::vector<int>& coins, int amount) {
+    // Initialize DP array with 'amount + 1' acting as our infinity value
+    std::vector<int> dp(amount + 1, amount + 1);
+    
+    // Base case: 0 coins are needed to make an amount of 0
+    dp[0] = 0;
+    
+    // Iterate through all amounts from 1 to the target amount
+    for (int i = 1; i <= amount; ++i) {
+        // Test each coin denomination for the current amount
+        for (int coin : coins) {
+            // Check if the current coin can be used
+            if (i - coin >= 0) {
+                // Update the DP table with the minimum coins needed
+                dp[i] = std::min(dp[i], dp[i - coin] + 1);
+            }
+        }
+    }
+    
+    // If our target amount still holds the infinity value, no combination worked
+    return dp[amount] > amount ? -1 : dp[amount];
+}
