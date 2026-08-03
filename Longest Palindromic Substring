@@ -1,0 +1,82 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+
+/**
+ * Helper function to expand around a given center.
+ * It moves outwards from the center as long as the characters match.
+ * 
+ * @param s The original string
+ * @param left The left starting index of the center
+ * @param right The right starting index of the center
+ * @return The length of the palindrome found expanding from this center
+ */
+int expandAroundCenter(const std::string& s, int left, int right) {
+    // Keep expanding outwards as long as we are within bounds and the characters match
+    while (left >= 0 && right < s.length() && s[left] == s[right]) {
+        left--;
+        right++;
+    }
+    
+    // The length of the palindrome is (right - left - 1) 
+    // We subtract 1 because the while loop breaks exactly when the characters 
+    // DON'T match, meaning 'left' and 'right' have gone one step too far.
+    return right - left - 1;
+}
+
+/**
+ * Finds the longest palindromic substring in a given string.
+ * 
+ * @param s The input string
+ * @return The longest palindromic substring
+ */
+std::string longestPalindrome(std::string s) {
+    // Edge case: Empty string
+    if (s.empty()) return "";
+
+    int start = 0;
+    int maxLength = 0;
+
+    // Iterate through every character in the string to treat it as a potential center
+    for (int i = 0; i < s.length(); i++) {
+        // Case 1: Odd length palindromes (e.g., "aba")
+        // The center is exactly on the character at index i.
+        int len1 = expandAroundCenter(s, i, i);
+        
+        // Case 2: Even length palindromes (e.g., "abba")
+        // The center is between the character at index i and i+1.
+        int len2 = expandAroundCenter(s, i, i + 1);
+        
+        // Find the maximum length between the two cases
+        int len = std::max(len1, len2);
+        
+        // If we found a palindrome longer than our current record, update it
+        if (len > maxLength) {
+            // Calculate the actual starting index of this new longest palindrome.
+            // (len - 1) / 2 handles the offset correctly for both even and odd lengths.
+            start = i - (len - 1) / 2;
+            maxLength = len;
+        }
+    }
+
+    // Return the substring starting at our recorded start index with our recorded length
+    return s.substr(start, maxLength);
+}
+
+int main() {
+    // Test Case 1
+    std::string testString1 = "babad";
+    std::cout << "Input: " << testString1 << std::endl;
+    std::cout << "Longest Palindromic Substring: " << longestPalindrome(testString1) << std::endl;
+    // Expected output: "bab" or "aba"
+    
+    std::cout << "-----------------------" << std::endl;
+    
+    // Test Case 2
+    std::string testString2 = "cbbd";
+    std::cout << "Input: " << testString2 << std::endl;
+    std::cout << "Longest Palindromic Substring: " << longestPalindrome(testString2) << std::endl;
+    // Expected output: "bb"
+    
+    return 0;
+}
