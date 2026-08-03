@@ -1,0 +1,95 @@
+#include <iostream>
+#include <vector>
+
+/**
+ * Helper function to perform Depth-First Search (DFS) on the grid.
+ * It "sinks" the current island by converting '1's to '0's.
+ * 
+ * @param grid The 2D matrix representing the map.
+ * @param r The current row index.
+ * @param c The current column index.
+ */
+void dfs(std::vector<std::vector<char>>& grid, int r, int c) {
+    int rows = grid.size();
+    int cols = grid[0].size();
+    
+    // Base case: Check if we are out of bounds or if the current cell is water ('0').
+    // If so, we just return and stop exploring this path.
+    if (r < 0 || c < 0 || r >= rows || c >= cols || grid[r][c] == '0') {
+        return;
+    }
+    
+    // Mark the current land cell as visited by turning it into water ('0').
+    // This prevents infinite loops and ensures we don't count it again.
+    grid[r][c] = '0';
+    
+    // Recursively visit all 4 adjacent directions (up, down, left, right)
+    // to sink the rest of the connected land.
+    dfs(grid, r - 1, c); // Up
+    dfs(grid, r + 1, c); // Down
+    dfs(grid, r, c - 1); // Left
+    dfs(grid, r, c + 1); // Right
+}
+
+/**
+ * Counts the total number of independent islands in the grid.
+ * 
+ * @param grid The 2D matrix representing the map.
+ * @return The total island count.
+ */
+int numIslands(std::vector<std::vector<char>>& grid) {
+    // Edge case: empty grid
+    if (grid.empty()) {
+        return 0;
+    }
+    
+    int islands = 0;
+    int rows = grid.size();
+    int cols = grid[0].size();
+    
+    // Iterate through every cell in the grid
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+            // If we find a piece of land, it means we've discovered a new island
+            if (grid[r][c] == '1') {
+                islands++;
+                
+                // Launch a DFS to sink this entire island so its other 
+                // components aren't counted as new islands later in the loop.
+                dfs(grid, r, c);
+            }
+        }
+    }
+    
+    return islands;
+}
+
+int main() {
+    // Test Case 1: 1 large connected island
+    std::vector<std::vector<char>> grid1 = {
+        {'1','1','1','1','0'},
+        {'1','1','0','1','0'},
+        {'1','1','0','0','0'},
+        {'0','0','0','0','0'}
+    };
+    
+    std::cout << "Test Case 1:\n";
+    std::cout << "Number of Islands: " << numIslands(grid1) << "\n"; 
+    // Expected output: 1
+    
+    std::cout << "-----------------------\n";
+    
+    // Test Case 2: 3 distinct islands
+    std::vector<std::vector<char>> grid2 = {
+        {'1','1','0','0','0'},
+        {'1','1','0','0','0'},
+        {'0','0','1','0','0'},
+        {'0','0','0','1','1'}
+    };
+    
+    std::cout << "Test Case 2:\n";
+    std::cout << "Number of Islands: " << numIslands(grid2) << "\n"; 
+    // Expected output: 3
+    
+    return 0;
+}
