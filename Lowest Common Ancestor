@@ -1,0 +1,90 @@
+#include <iostream>
+
+/**
+ * Definition for a binary tree node.
+ */
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    
+    // Constructor for easy node creation
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+/**
+ * Finds the lowest common ancestor of two nodes in a binary tree.
+ * 
+ * @param root The root of the binary tree.
+ * @param p The first node to find.
+ * @param q The second node to find.
+ * @return The lowest common ancestor node.
+ */
+TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+    // Base Case 1: If we reach a null node, we've hit the bottom without finding p or q.
+    if (root == nullptr) {
+        return nullptr;
+    }
+    
+    // Base Case 2: If the current node is either p or q, we've found one of our targets.
+    // We return the current node up the recursive chain.
+    if (root == p || root == q) {
+        return root;
+    }
+
+    // Recursive Step: Look for p and q in the left and right subtrees.
+    TreeNode* leftSearchResult = lowestCommonAncestor(root->left, p, q);
+    TreeNode* rightSearchResult = lowestCommonAncestor(root->right, p, q);
+
+    // If BOTH the left and right searches returned a node, it means p is in one 
+    // subtree and q is in the other. Therefore, the current root MUST be the LCA.
+    if (leftSearchResult != nullptr && rightSearchResult != nullptr) {
+        return root;
+    }
+    
+    // If only ONE side returned a node, it means BOTH p and q are located in that 
+    // same subtree (or we only found one so far). We pass that non-null result upward.
+    // If both are null, this will just return null, which is correct.
+    return leftSearchResult != nullptr ? leftSearchResult : rightSearchResult;
+}
+
+int main() {
+    // Let's construct the following binary tree for our test:
+    //         3
+    //       /   \
+    //      5     1
+    //     / \   / \
+    //    6   2 0   8
+    //       / \
+    //      7   4
+    
+    TreeNode* root = new TreeNode(3);
+    root->left = new TreeNode(5);
+    root->right = new TreeNode(1);
+    
+    root->left->left = new TreeNode(6);
+    root->left->right = new TreeNode(2);
+    root->left->right->left = new TreeNode(7);
+    root->left->right->right = new TreeNode(4);
+    
+    root->right->left = new TreeNode(0);
+    root->right->right = new TreeNode(8);
+    
+    // Test Case 1: LCA of 5 and 1 should be 3
+    TreeNode* p1 = root->left;        // Node 5
+    TreeNode* q1 = root->right;       // Node 1
+    TreeNode* lca1 = lowestCommonAncestor(root, p1, q1);
+    std::cout << "LCA of " << p1->val << " and " << q1->val 
+              << " is: " << (lca1 ? std::to_string(lca1->val) : "null") << "\n";
+              
+    // Test Case 2: LCA of 5 and 4 should be 5
+    TreeNode* p2 = root->left;               // Node 5
+    TreeNode* q2 = root->left->right->right; // Node 4
+    TreeNode* lca2 = lowestCommonAncestor(root, p2, q2);
+    std::cout << "LCA of " << p2->val << " and " << q2->val 
+              << " is: " << (lca2 ? std::to_string(lca2->val) : "null") << "\n";
+
+    // Clean up memory (in a real interview, mention you'd write a helper for this!)
+    // For brevity, skipping full tree deletion here.
+    return 0;
+}
