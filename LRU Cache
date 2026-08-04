@@ -1,0 +1,124 @@
+#include <iostream>
+#include <unordered_map>
+#include <list>
+
+/**
+ * A highly optimized LRU (Least Recently Used) Cache implementation.
+ * It uses a Doubly Linked List (std::list) to maintain the recency of usage
+ * and a Hash Map (std::unordered_map) for O(1) access.
+ */
+class LRUCache {
+private:
+    // Maximum number of items the cache can hold
+    int capacity;
+    
+    // The Doubly Linked List stores pairs of {key, value}.
+    // We store the 'key' here as well so that when we need to evict the item 
+    // from the back of the list, we know which key to remove from the hash map.
+    // The FRONT of the list is the Most Recently Used.
+    // The BACK of the list is the Least Recently Used.
+    std::list<std::pair<int, int>> cacheList;
+    
+    // The Hash Map maps a 'key' directly to its corresponding node (iterator) 
+    // in the Doubly Linked List. This enables O(1) access and modification.
+    std::unordered_map<int, std::list<std::pair<int, int>>::iterator> cacheMap;
+
+public:
+    /**
+     * Constructor to initialize the cache with a specific capacity.
+     */
+    LRUCache(int capacity) {
+        this->capacity = capacity;
+    }
+
+    /**
+     * Retrieves the value associated with the key.
+     * Accessing a key makes it the most recently used item.
+     * 
+     * @param key The key to look up.
+     * @return The value if found, otherwise -1.
+     */
+    int get(int key) {
+        // If the key is not found in the hash map, return -1
+        if (cacheMap.find(key) == cacheMap.end()) {
+            return -1; 
+        }
+        
+        // If the key IS found, we must mark it as most recently used.
+        // We do this by moving the node to the front of the linked list.
+        // std::list::splice does this in O(1) time without reallocating memory!
+        cacheList.splice(cacheList.begin(), cacheList, cacheMap[key]);
+        
+        // Return the value, which is the second element of the pair
+        return cacheMap[key]->second;
+    }
+
+    /**
+     * Inserts or updates a key-value pair in the cache.
+     * If the cache is at capacity, it evicts the least recently used item.
+     * 
+     * @param key The key to insert or update.
+     * @param value The value associated with the key.
+     */
+    void put(int key, int value) {
+        // Case 1: The key already exists in the cache
+        if (cacheMap.find(key) != cacheMap.end()) {
+            // Update the value
+            cacheMap[key]->second = value;
+            
+            // Mark it as most recently used by moving it to the front
+            cacheList.splice(cacheList.begin(), cacheList, cacheMap[key]);
+        } 
+        // Case 2: The key does NOT exist in the cache
+        else {
+            // If the cache is full, we must evict the Least Recently Used item
+            if (cacheList.size() == capacity) {
+                // The LRU item is at the back of the list.
+                // We grab its key so we can erase it from the hash map.
+                int lruKey = cacheList.back().first;
+                
+                // Remove from the list (O(1))
+                cacheList.pop_back();
+                
+                // Remove from the hash map (O(1))
+                cacheMap.erase(lruKey);
+            }
+            
+            // Insert the new key-value pair at the front of the list (Most Recently Used)
+            cacheList.emplace_front(key, value);
+            
+            // Store the iterator pointing to this newly created node in the hash map
+            cacheMap[key] = cacheList.begin();
+        }
+    }
+};
+
+int main() {
+    std::cout << "Initializing LRU Cache with capacity 2...\n";
+    LRUCache* lRUCache = new LRUCache(2);
+    
+    std::cout << "Putting (1, 1)...\n";
+    lRUCache->put(1, 1); // cache is {1=1}
+    
+    std::cout << "Putting (2, 2)...\n";
+    lRUCache->put(2, 2); // cache is {1=1, 2=2}
+    
+    std::cout << "Getting key 1: " << lRUCache->get(1) << " (Expected: 1)\n"; // return 1, cache is {2=2, 1=1}
+    
+    std::cout << "Putting (3, 3). Evicting key 2...\n";
+    lRUCache->put(3, 3); // LRU key was 2, evicts key 2, cache is {1=1, 3=3}
+    
+    std::cout << "Getting key 2: " << lRUCache->get(2) << " (Expected: -1)\n"; // returns -1 (not found)
+    
+    std::cout << "Putting (4, 4). Evicting key 1...\n";
+    lRUCache->put(4, 4); // LRU key was 1, evicts key 1, cache is {4=4, 3=3}
+    
+    std::cout << "Getting key 1: " << lRUCache->get(1) << " (Expected: -1)\n"; // return -1 (not found)
+    std::cout << "Getting key 3: " << lRUCache->get(3) << " (Expected: 3)\n"; // return 3
+    std::cout << "Getting key 4: " << lRUCache->get(4) << " (Expected: 4)\n"; // return 4
+
+    // Clean up memory
+    delete lRUCache;
+    
+    return 0;
+}
