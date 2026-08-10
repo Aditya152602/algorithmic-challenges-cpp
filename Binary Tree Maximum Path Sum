@@ -1,0 +1,59 @@
+#include <iostream>
+#include <algorithm>
+#include <climits>
+using namespace std;
+
+struct TreeNode
+{
+    int val;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(int x)
+    {
+        val = x;
+        left = NULL;
+        right = NULL;
+    }
+};
+
+int maxPath = INT_MIN;
+
+int maxGain(TreeNode* root)
+{
+    if (root == NULL)
+        return 0;
+
+    int leftGain = max(0, maxGain(root->left));
+    int rightGain = max(0, maxGain(root->right));
+
+    int currentPath =
+        root->val + leftGain + rightGain;
+
+    maxPath = max(maxPath, currentPath);
+
+    return root->val + max(leftGain, rightGain);
+}
+
+int maxPathSum(TreeNode* root)
+{
+    maxGain(root);
+
+    return maxPath;
+}
+
+int main()
+{
+    TreeNode* root = new TreeNode(-10);
+
+    root->left = new TreeNode(9);
+    root->right = new TreeNode(20);
+
+    root->right->left = new TreeNode(15);
+    root->right->right = new TreeNode(7);
+
+    cout << "Maximum Path Sum = "
+         << maxPathSum(root);
+
+    return 0;
+}
