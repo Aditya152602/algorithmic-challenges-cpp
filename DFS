@@ -1,0 +1,40 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+void dfs(int node, vector<vector<int>>& graph,
+         vector<bool>& visited, vector<int>& result)
+{
+    visited[node] = true;
+    result.push_back(node);
+
+    for (int neighbor : graph[node])
+    {
+        if (!visited[neighbor])
+            dfs(neighbor, graph, visited, result);
+    }
+}
+
+int main()
+{
+    vector<vector<int>> graph =
+    {
+        {1, 2},
+        {0, 3, 4},
+        {0, 4},
+        {1},
+        {1, 2}
+    };
+
+    vector<bool> visited(graph.size(), false);
+    vector<int> result;
+
+    dfs(0, graph, visited, result);
+
+    cout << "DFS: ";
+
+    for (int x : result)
+        cout << x << " ";
+
+    return 0;
+}
